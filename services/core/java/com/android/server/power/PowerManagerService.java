@@ -475,6 +475,8 @@ public final class PowerManagerService extends SystemService
                 mDirty |= DIRTY_BOOT_COMPLETED;
                 userActivityNoUpdateLocked(
                         now, PowerManager.USER_ACTIVITY_EVENT_OTHER, 0, Process.SYSTEM_UID);
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 479");
                 updatePowerStateLocked();
             }
         }
@@ -487,7 +489,8 @@ public final class PowerManagerService extends SystemService
             mDreamManager = getLocalService(DreamManagerInternal.class);
             mDisplayManagerInternal = getLocalService(DisplayManagerInternal.class);
             mPolicy = getLocalService(WindowManagerPolicy.class);
-            mBatteryManagerInternal = getLocalService(BatteryManagerInternal.class);
+            // psw0523 fix for AVN
+            // mBatteryManagerInternal = getLocalService(BatteryManagerInternal.class);
 
             PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
             mScreenBrightnessSettingMinimum = pm.getMinimumScreenBrightnessSetting();
@@ -576,6 +579,8 @@ public final class PowerManagerService extends SystemService
             readConfigurationLocked();
             updateSettingsLocked();
             mDirty |= DIRTY_BATTERY_STATE;
+            // psw0523 debugging
+            Slog.d(TAG, "call updatePowerStateLocked() in 583");
             updatePowerStateLocked();
         }
     }
@@ -722,6 +727,8 @@ public final class PowerManagerService extends SystemService
 
     private void handleSettingsChangedLocked() {
         updateSettingsLocked();
+        // psw0523 debugging
+        Slog.d(TAG, "call updatePowerStateLocked() in 731");
         updatePowerStateLocked();
     }
 
@@ -758,8 +765,11 @@ public final class PowerManagerService extends SystemService
             }
 
             applyWakeLockFlagsOnAcquireLocked(wakeLock, uid);
-            mDirty |= DIRTY_WAKE_LOCKS;
-            updatePowerStateLocked();
+            // psw0523 fix for AVN
+            // mDirty |= DIRTY_WAKE_LOCKS;
+            // // psw0523 debugging
+            // Slog.d(TAG, "call updatePowerStateLocked() in 770");
+            // updatePowerStateLocked();
             if (notifyAcquire) {
                 // This needs to be done last so we are sure we have acquired the
                 // kernel wake lock.  Otherwise we have a race where the system may
@@ -837,7 +847,10 @@ public final class PowerManagerService extends SystemService
 
         applyWakeLockFlagsOnReleaseLocked(wakeLock);
         mDirty |= DIRTY_WAKE_LOCKS;
-        updatePowerStateLocked();
+        // psw0523 fix AVN
+        // psw0523 debugging
+        // Slog.d(TAG, "call updatePowerStateLocked() in 850");
+        // updatePowerStateLocked();
     }
 
     private void applyWakeLockFlagsOnReleaseLocked(WakeLock wakeLock) {
@@ -944,7 +957,10 @@ public final class PowerManagerService extends SystemService
     private void userActivityInternal(long eventTime, int event, int flags, int uid) {
         synchronized (mLock) {
             if (userActivityNoUpdateLocked(eventTime, event, flags, uid)) {
-                updatePowerStateLocked();
+                // psw0523 fix for AVN
+                // psw0523 debugging
+                // Slog.d(TAG, "call updatePowerStateLocked() in 959");
+                // updatePowerStateLocked();
             }
         }
     }
@@ -999,6 +1015,8 @@ public final class PowerManagerService extends SystemService
     private void wakeUpInternal(long eventTime, int uid) {
         synchronized (mLock) {
             if (wakeUpNoUpdateLocked(eventTime, uid)) {
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 1016");
                 updatePowerStateLocked();
             }
         }
@@ -1042,7 +1060,11 @@ public final class PowerManagerService extends SystemService
     private void goToSleepInternal(long eventTime, int reason, int flags, int uid) {
         synchronized (mLock) {
             if (goToSleepNoUpdateLocked(eventTime, reason, flags, uid)) {
-                updatePowerStateLocked();
+                // psw0523 fix for AVN Power Button Handling
+                if (reason == PowerManager.GO_TO_SLEEP_REASON_POWER_BUTTON)
+                    updatePowerStateLockedAtPowerButton();
+                else // here end of psw0523
+                    updatePowerStateLocked();
             }
         }
     }
@@ -1120,6 +1142,8 @@ public final class PowerManagerService extends SystemService
     private void napInternal(long eventTime, int uid) {
         synchronized (mLock) {
             if (napNoUpdateLocked(eventTime, uid)) {
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 1143");
                 updatePowerStateLocked();
             }
         }
@@ -1248,6 +1272,58 @@ public final class PowerManagerService extends SystemService
         }
     }
 
+    // psw0523 add for AVN
+    private void updatePowerStateLockedAtPowerButton() {
+        if (!mSystemReady || mDirty == 0) {
+            return;
+        }
+        if (!Thread.holdsLock(mLock)) {
+            Slog.wtf(TAG, "Power manager lock was not held when calling updatePowerStateLocked");
+        }
+
+        Trace.traceBegin(Trace.TRACE_TAG_POWER, "updatePowerState");
+        try {
+            // Phase 0: Basic state updates.
+            updateIsPoweredLocked(mDirty);
+            updateStayOnLocked(mDirty);
+            updateScreenBrightnessBoostLocked(mDirty);
+
+            // Phase 1: Update wakefulness.
+            // Loop because the wake lock and user activity computations are influenced
+            // by changes in wakefulness.
+            final long now = SystemClock.uptimeMillis();
+            int dirtyPhase2 = 0;
+            for (;;) {
+                int dirtyPhase1 = mDirty;
+                dirtyPhase2 |= dirtyPhase1;
+                mDirty = 0;
+
+                updateWakeLockSummaryLocked(dirtyPhase1);
+                updateUserActivitySummaryLocked(now, dirtyPhase1);
+                if (!updateWakefulnessLocked(dirtyPhase1)) {
+                    break;
+                }
+            }
+
+            // Phase 2: Update display power state.
+            boolean displayBecameReady = updateDisplayPowerStateLockedAtPowerButton(dirtyPhase2);
+
+            // Phase 3: Update dream state (depends on display ready signal).
+            updateDreamLocked(dirtyPhase2, displayBecameReady);
+
+            // Phase 4: Send notifications, if needed.
+            if (mDisplayReady) {
+                finishWakefulnessChangeLocked();
+            }
+
+            // Phase 5: Update suspend blocker.
+            // Because we might release the last suspend blocker here, we need to make sure
+            // we finished everything else first!
+            updateSuspendBlockerLocked();
+        } finally {
+            Trace.traceEnd(Trace.TRACE_TAG_POWER);
+        }
+    }
     /**
      * Updates the value of mIsPowered.
      * Sets DIRTY_IS_POWERED if a change occurred.
@@ -1257,10 +1333,16 @@ public final class PowerManagerService extends SystemService
             final boolean wasPowered = mIsPowered;
             final int oldPlugType = mPlugType;
             final boolean oldLevelLow = mBatteryLevelLow;
-            mIsPowered = mBatteryManagerInternal.isPowered(BatteryManager.BATTERY_PLUGGED_ANY);
-            mPlugType = mBatteryManagerInternal.getPlugType();
-            mBatteryLevel = mBatteryManagerInternal.getBatteryLevel();
-            mBatteryLevelLow = mBatteryManagerInternal.getBatteryLevelLow();
+            //  psw0523 fix for AVN
+            // mIsPowered = mBatteryManagerInternal.isPowered(BatteryManager.BATTERY_PLUGGED_ANY);
+            // mPlugType = mBatteryManagerInternal.getPlugType();
+            // mBatteryLevel = mBatteryManagerInternal.getBatteryLevel();
+            // mBatteryLevelLow = mBatteryManagerInternal.getBatteryLevelLow();
+
+            mIsPowered = true;
+            mPlugType = BatteryManager.BATTERY_PLUGGED_AC;
+            mBatteryLevel = 100;
+            mBatteryLevelLow = false;
 
             if (DEBUG_SPEW) {
                 Slog.d(TAG, "updateIsPoweredLocked: wasPowered=" + wasPowered
@@ -1352,12 +1434,14 @@ public final class PowerManagerService extends SystemService
     private void updateStayOnLocked(int dirty) {
         if ((dirty & (DIRTY_BATTERY_STATE | DIRTY_SETTINGS)) != 0) {
             final boolean wasStayOn = mStayOn;
-            if (mStayOnWhilePluggedInSetting != 0
-                    && !isMaximumScreenOffTimeoutFromDeviceAdminEnforcedLocked()) {
-                mStayOn = mBatteryManagerInternal.isPowered(mStayOnWhilePluggedInSetting);
-            } else {
-                mStayOn = false;
-            }
+            // psw0523 fix for AVN
+            // if (mStayOnWhilePluggedInSetting != 0
+            //         && !isMaximumScreenOffTimeoutFromDeviceAdminEnforcedLocked()) {
+            //     mStayOn = mBatteryManagerInternal.isPowered(mStayOnWhilePluggedInSetting);
+            // } else {
+            //     mStayOn = false;
+            // }
+            mStayOn = true;
 
             if (mStayOn != wasStayOn) {
                 mDirty |= DIRTY_STAY_ON;
@@ -1523,8 +1607,11 @@ public final class PowerManagerService extends SystemService
                 Slog.d(TAG, "handleUserActivityTimeout");
             }
 
-            mDirty |= DIRTY_USER_ACTIVITY;
-            updatePowerStateLocked();
+            // psw0523 fix for AVN
+            // mDirty |= DIRTY_USER_ACTIVITY;
+            // // psw0523 debugging
+            // Slog.d(TAG, "call updatePowerStateLocked() in 1609");
+            // updatePowerStateLocked();
         }
     }
 
@@ -1601,7 +1688,9 @@ public final class PowerManagerService extends SystemService
      * to being fully awake or else go to sleep for good.
      */
     private boolean isItBedTimeYetLocked() {
-        return mBootCompleted && !isBeingKeptAwakeLocked();
+        // psw0523 fix for No Screen Off
+        //return mBootCompleted && !isBeingKeptAwakeLocked();
+        return false;
     }
 
     /**
@@ -1728,9 +1817,13 @@ public final class PowerManagerService extends SystemService
                 if (isItBedTimeYetLocked()) {
                     goToSleepNoUpdateLocked(SystemClock.uptimeMillis(),
                             PowerManager.GO_TO_SLEEP_REASON_TIMEOUT, 0, Process.SYSTEM_UID);
+                    // psw0523 debugging
+                    Slog.d(TAG, "call updatePowerStateLocked() in 1817");
                     updatePowerStateLocked();
                 } else {
                     wakeUpNoUpdateLocked(SystemClock.uptimeMillis(), Process.SYSTEM_UID);
+                    // psw0523 debugging
+                    Slog.d(TAG, "call updatePowerStateLocked() in 1822");
                     updatePowerStateLocked();
                 }
             } else if (wakefulness == WAKEFULNESS_DOZING) {
@@ -1739,8 +1832,11 @@ public final class PowerManagerService extends SystemService
                 }
 
                 // Doze has ended or will be stopped.  Update the power state.
-                reallyGoToSleepNoUpdateLocked(SystemClock.uptimeMillis(), Process.SYSTEM_UID);
-                updatePowerStateLocked();
+                // psw0523 fix for AVN
+                // reallyGoToSleepNoUpdateLocked(SystemClock.uptimeMillis(), Process.SYSTEM_UID);
+                // psw0523 debugging
+                // Slog.d(TAG, "call updatePowerStateLocked() in 1833");
+                // updatePowerStateLocked();
             }
         }
 
@@ -1852,11 +1948,13 @@ public final class PowerManagerService extends SystemService
                 mDisplayPowerRequest.dozeScreenBrightness = PowerManager.BRIGHTNESS_DEFAULT;
             }
 
+            // psw0523 debugging
+            Slog.d(TAG, "call requestPowerState 1");
             mDisplayReady = mDisplayManagerInternal.requestPowerState(mDisplayPowerRequest,
                     mRequestWaitForNegativeProximity);
             mRequestWaitForNegativeProximity = false;
 
-            if (DEBUG_SPEW) {
+            // if (DEBUG_SPEW) {
                 Slog.d(TAG, "updateDisplayPowerStateLocked: mDisplayReady=" + mDisplayReady
                         + ", policy=" + mDisplayPowerRequest.policy
                         + ", mWakefulness=" + mWakefulness
@@ -1865,11 +1963,95 @@ public final class PowerManagerService extends SystemService
                         + ", mBootCompleted=" + mBootCompleted
                         + ", mScreenBrightnessBoostInProgress="
                                 + mScreenBrightnessBoostInProgress);
-            }
+            // }
         }
         return mDisplayReady && !oldDisplayReady;
     }
 
+    // psw0523 add for AVN Power Button
+    private boolean updateDisplayPowerStateLockedAtPowerButton(int dirty) {
+        final boolean oldDisplayReady = mDisplayReady;
+        if ((dirty & (DIRTY_WAKE_LOCKS | DIRTY_USER_ACTIVITY | DIRTY_WAKEFULNESS
+                | DIRTY_ACTUAL_DISPLAY_POWER_STATE_UPDATED | DIRTY_BOOT_COMPLETED
+                | DIRTY_SETTINGS | DIRTY_SCREEN_BRIGHTNESS_BOOST)) != 0) {
+            // mDisplayPowerRequest.policy = DisplayPowerRequest.POLICY_OFF;
+            // mDisplayPowerRequest.policy = DisplayPowerRequest.POLICY_DOZE;
+            mDisplayPowerRequest.policy = DisplayPowerRequest.POLICY_DIM;
+
+            // Determine appropriate screen brightness and auto-brightness adjustments.
+            // int screenBrightness = mScreenBrightnessSettingDefault;
+            // float screenAutoBrightnessAdjustment = 0.0f;
+            // boolean autoBrightness = (mScreenBrightnessModeSetting ==
+            //         Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
+            // if (isValidBrightness(mScreenBrightnessOverrideFromWindowManager)) {
+            //     screenBrightness = mScreenBrightnessOverrideFromWindowManager;
+            //     autoBrightness = false;
+            // } else if (isValidBrightness(mTemporaryScreenBrightnessSettingOverride)) {
+            //     screenBrightness = mTemporaryScreenBrightnessSettingOverride;
+            // } else if (isValidBrightness(mScreenBrightnessSetting)) {
+            //     screenBrightness = mScreenBrightnessSetting;
+            // }
+            // if (autoBrightness) {
+            //     screenBrightness = mScreenBrightnessSettingDefault;
+            //     if (isValidAutoBrightnessAdjustment(
+            //             mTemporaryScreenAutoBrightnessAdjustmentSettingOverride)) {
+            //         screenAutoBrightnessAdjustment =
+            //                 mTemporaryScreenAutoBrightnessAdjustmentSettingOverride;
+            //     } else if (isValidAutoBrightnessAdjustment(
+            //             mScreenAutoBrightnessAdjustmentSetting)) {
+            //         screenAutoBrightnessAdjustment = mScreenAutoBrightnessAdjustmentSetting;
+            //     }
+            // }
+            // screenBrightness = Math.max(Math.min(screenBrightness,
+            //         mScreenBrightnessSettingMaximum), mScreenBrightnessSettingMinimum);
+            // screenAutoBrightnessAdjustment = Math.max(Math.min(
+            //         screenAutoBrightnessAdjustment, 1.0f), -1.0f);
+
+            // Update display power request.
+            // mDisplayPowerRequest.screenBrightness = screenBrightness;
+            // mDisplayPowerRequest.screenAutoBrightnessAdjustment =
+            //         screenAutoBrightnessAdjustment;
+            // mDisplayPowerRequest.useAutoBrightness = autoBrightness;
+            // mDisplayPowerRequest.useProximitySensor = shouldUseProximitySensorLocked();
+            // mDisplayPowerRequest.lowPowerMode = mLowPowerModeEnabled;
+            // mDisplayPowerRequest.boostScreenBrightness = mScreenBrightnessBoostInProgress;
+            mDisplayPowerRequest.screenBrightness = 0;
+            mDisplayPowerRequest.screenAutoBrightnessAdjustment = 0.0f;
+            mDisplayPowerRequest.useAutoBrightness = false;
+            mDisplayPowerRequest.useProximitySensor = false;
+            mDisplayPowerRequest.lowPowerMode = false;
+            mDisplayPowerRequest.boostScreenBrightness = false;
+            mDisplayPowerRequest.dozeScreenState = mDozeScreenStateOverrideFromDreamManager;
+            mDisplayPowerRequest.dozeScreenBrightness = 0;
+
+            // if (mDisplayPowerRequest.policy == DisplayPowerRequest.POLICY_DOZE) {
+            //     mDisplayPowerRequest.dozeScreenState = mDozeScreenStateOverrideFromDreamManager;
+            //     mDisplayPowerRequest.dozeScreenBrightness =
+            //             mDozeScreenBrightnessOverrideFromDreamManager;
+            // } else {
+            //     mDisplayPowerRequest.dozeScreenState = Display.STATE_UNKNOWN;
+            //     mDisplayPowerRequest.dozeScreenBrightness = PowerManager.BRIGHTNESS_DEFAULT;
+            // }
+            //
+            // psw0523 debugging
+            Slog.d(TAG, "call requestPowerState 2");
+            mDisplayReady = mDisplayManagerInternal.requestPowerState(mDisplayPowerRequest,
+                    mRequestWaitForNegativeProximity);
+            mRequestWaitForNegativeProximity = false;
+
+            // if (DEBUG_SPEW) {
+                Slog.d(TAG, "updateDisplayPowerStateLocked: mDisplayReady=" + mDisplayReady
+                        + ", policy=" + mDisplayPowerRequest.policy
+                        + ", mWakefulness=" + mWakefulness
+                        + ", mWakeLockSummary=0x" + Integer.toHexString(mWakeLockSummary)
+                        + ", mUserActivitySummary=0x" + Integer.toHexString(mUserActivitySummary)
+                        + ", mBootCompleted=" + mBootCompleted
+                        + ", mScreenBrightnessBoostInProgress="
+                                + mScreenBrightnessBoostInProgress);
+            // }
+        }
+        return mDisplayReady && !oldDisplayReady;
+    }
     private void updateScreenBrightnessBoostLocked(int dirty) {
         if ((dirty & DIRTY_SCREEN_BRIGHTNESS_BOOST) != 0) {
             if (mScreenBrightnessBoostInProgress) {
@@ -1902,29 +2084,32 @@ public final class PowerManagerService extends SystemService
     }
 
     private int getDesiredScreenPolicyLocked() {
-        if (mWakefulness == WAKEFULNESS_ASLEEP) {
-            return DisplayPowerRequest.POLICY_OFF;
-        }
+        // psw0523 fix for No Screen Off
+        //if (mWakefulness == WAKEFULNESS_ASLEEP) {
+            //return DisplayPowerRequest.POLICY_OFF;
+        //}
 
-        if (mWakefulness == WAKEFULNESS_DOZING) {
-            if ((mWakeLockSummary & WAKE_LOCK_DOZE) != 0) {
-                return DisplayPowerRequest.POLICY_DOZE;
-            }
-            if (mDozeAfterScreenOffConfig) {
-                return DisplayPowerRequest.POLICY_OFF;
-            }
-            // Fall through and preserve the current screen policy if not configured to
-            // doze after screen off.  This causes the screen off transition to be skipped.
-        }
+        //if (mWakefulness == WAKEFULNESS_DOZING) {
+            //if ((mWakeLockSummary & WAKE_LOCK_DOZE) != 0) {
+                //return DisplayPowerRequest.POLICY_DOZE;
+            //}
+            //if (mDozeAfterScreenOffConfig) {
+                //return DisplayPowerRequest.POLICY_OFF;
+            //}
+            //// Fall through and preserve the current screen policy if not configured to
+            //// doze after screen off.  This causes the screen off transition to be skipped.
+        //}
 
-        if ((mWakeLockSummary & WAKE_LOCK_SCREEN_BRIGHT) != 0
-                || (mUserActivitySummary & USER_ACTIVITY_SCREEN_BRIGHT) != 0
-                || !mBootCompleted
-                || mScreenBrightnessBoostInProgress) {
-            return DisplayPowerRequest.POLICY_BRIGHT;
-        }
+        //if ((mWakeLockSummary & WAKE_LOCK_SCREEN_BRIGHT) != 0
+                //|| (mUserActivitySummary & USER_ACTIVITY_SCREEN_BRIGHT) != 0
+                //|| !mBootCompleted
+                //|| mScreenBrightnessBoostInProgress) {
+            //return DisplayPowerRequest.POLICY_BRIGHT;
+        //}
 
-        return DisplayPowerRequest.POLICY_DIM;
+        //return DisplayPowerRequest.POLICY_DIM;
+
+        return DisplayPowerRequest.POLICY_BRIGHT;
     }
 
     private final DisplayManagerInternal.DisplayPowerCallbacks mDisplayPowerCallbacks =
@@ -1934,8 +2119,11 @@ public final class PowerManagerService extends SystemService
         @Override
         public void onStateChanged() {
             synchronized (mLock) {
-                mDirty |= DIRTY_ACTUAL_DISPLAY_POWER_STATE_UPDATED;
-                updatePowerStateLocked();
+                // psw0523 fix for AVN 
+                // mDirty |= DIRTY_ACTUAL_DISPLAY_POWER_STATE_UPDATED;
+                // psw0523 debugging
+                // Slog.d(TAG, "call updatePowerStateLocked() in 2095");
+                // updatePowerStateLocked();
             }
         }
 
@@ -1944,6 +2132,8 @@ public final class PowerManagerService extends SystemService
             synchronized (mLock) {
                 mProximityPositive = true;
                 mDirty |= DIRTY_PROXIMITY_POSITIVE;
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2106");
                 updatePowerStateLocked();
             }
         }
@@ -1955,6 +2145,8 @@ public final class PowerManagerService extends SystemService
                 mDirty |= DIRTY_PROXIMITY_POSITIVE;
                 userActivityNoUpdateLocked(SystemClock.uptimeMillis(),
                         PowerManager.USER_ACTIVITY_EVENT_OTHER, 0, Process.SYSTEM_UID);
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2119");
                 updatePowerStateLocked();
             }
         }
@@ -2166,6 +2358,8 @@ public final class PowerManagerService extends SystemService
 
     private void handleBatteryStateChangedLocked() {
         mDirty |= DIRTY_BATTERY_STATE;
+        // psw0523 debugging
+        Slog.d(TAG, "call updatePowerStateLocked() in 2332");
         updatePowerStateLocked();
     }
 
@@ -2230,6 +2424,8 @@ public final class PowerManagerService extends SystemService
         synchronized (mLock) {
             mMaximumScreenOffTimeoutFromDeviceAdmin = timeMs;
             mDirty |= DIRTY_SETTINGS;
+            // psw0523 debugging
+            Slog.d(TAG, "call updatePowerStateLocked() in 2398");
             updatePowerStateLocked();
         }
     }
@@ -2266,6 +2462,8 @@ public final class PowerManagerService extends SystemService
 
             userActivityNoUpdateLocked(eventTime,
                     PowerManager.USER_ACTIVITY_EVENT_OTHER, 0, uid);
+            // psw0523 debugging
+            Slog.d(TAG, "call updatePowerStateLocked() in 2436");
             updatePowerStateLocked();
         }
     }
@@ -2283,6 +2481,8 @@ public final class PowerManagerService extends SystemService
             }
 
             mDirty |= DIRTY_SCREEN_BRIGHTNESS_BOOST;
+            // psw0523 debugging
+            Slog.d(TAG, "call updatePowerStateLocked() in 2455");
             updatePowerStateLocked();
         }
     }
@@ -2292,6 +2492,8 @@ public final class PowerManagerService extends SystemService
             if (mScreenBrightnessOverrideFromWindowManager != brightness) {
                 mScreenBrightnessOverrideFromWindowManager = brightness;
                 mDirty |= DIRTY_SETTINGS;
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2466");
                 updatePowerStateLocked();
             }
         }
@@ -2302,6 +2504,8 @@ public final class PowerManagerService extends SystemService
             if (mUserActivityTimeoutOverrideFromWindowManager != timeoutMillis) {
                 mUserActivityTimeoutOverrideFromWindowManager = timeoutMillis;
                 mDirty |= DIRTY_SETTINGS;
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2478");
                 updatePowerStateLocked();
             }
         }
@@ -2312,6 +2516,8 @@ public final class PowerManagerService extends SystemService
             if (mTemporaryScreenBrightnessSettingOverride != brightness) {
                 mTemporaryScreenBrightnessSettingOverride = brightness;
                 mDirty |= DIRTY_SETTINGS;
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2490");
                 updatePowerStateLocked();
             }
         }
@@ -2324,6 +2530,8 @@ public final class PowerManagerService extends SystemService
             if (mTemporaryScreenAutoBrightnessAdjustmentSettingOverride != adj) {
                 mTemporaryScreenAutoBrightnessAdjustmentSettingOverride = adj;
                 mDirty |= DIRTY_SETTINGS;
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2504");
                 updatePowerStateLocked();
             }
         }
@@ -2337,6 +2545,8 @@ public final class PowerManagerService extends SystemService
                 mDozeScreenStateOverrideFromDreamManager = screenState;
                 mDozeScreenBrightnessOverrideFromDreamManager = screenBrightness;
                 mDirty |= DIRTY_SETTINGS;
+                // psw0523 debugging
+                Slog.d(TAG, "call updatePowerStateLocked() in 2519");
                 updatePowerStateLocked();
             }
         }
@@ -2579,6 +2789,8 @@ public final class PowerManagerService extends SystemService
                 if (mDockState != dockState) {
                     mDockState = dockState;
                     mDirty |= DIRTY_DOCK_STATE;
+                    // psw0523 debugging
+                    Slog.d(TAG, "call updatePowerStateLocked() in 2763");
                     updatePowerStateLocked();
                 }
             }
