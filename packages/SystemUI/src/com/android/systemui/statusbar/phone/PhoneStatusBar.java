@@ -720,6 +720,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         mMoreIcon = mStatusBarView.findViewById(R.id.moreIcon);
         mNotificationIcons.setOverflowIndicator(mMoreIcon);
         mStatusBarContents = (LinearLayout)mStatusBarView.findViewById(R.id.status_bar_contents);
+        mStatusBarView.findViewById(R.id.all_apps).setOnClickListener(mAllAPPClickListener);
 
         mStackScroller = (NotificationStackScrollLayout) mStatusBarWindow.findViewById(
                 R.id.notification_stack_scroller);
@@ -939,6 +940,18 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         startGlyphRasterizeHack();
         return mStatusBarView;
     }
+
+    private final View.OnClickListener mAllAPPClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent("android.intent.action.LAUNCHER");    
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            mContext.startActivityAsUser(
+                        intent, new UserHandle(UserHandle.USER_CURRENT)); 
+            intent = new Intent("com.android.launcher2.showApp");    
+            mContext.sendBroadcastAsUser(intent,UserHandle.ALL);    
+        }
+    };
 
     private void clearAllNotifications() {
 
