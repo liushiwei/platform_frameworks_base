@@ -65,6 +65,7 @@
                 android:scaleType="center"
                 android:contentDescription="@string/accessibility_recent"
                 />
+                
         <com.android.systemui.statusbar.AlphaOptimizedFrameLayout
             android:id="@+id/notification_icon_area"
             android:layout_width="0dip"
