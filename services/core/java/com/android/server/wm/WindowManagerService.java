@@ -3900,6 +3900,7 @@ public class WindowManagerService extends IWindowManager.Stub
             if (req == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
                 req = getOrientationFromAppTokensLocked();
             }
+	    req = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
             if (req != mForcedAppOrientation) {
                 mForcedAppOrientation = req;
