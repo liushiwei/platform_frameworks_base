@@ -720,7 +720,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         mMoreIcon = mStatusBarView.findViewById(R.id.moreIcon);
         mNotificationIcons.setOverflowIndicator(mMoreIcon);
         mStatusBarContents = (LinearLayout)mStatusBarView.findViewById(R.id.status_bar_contents);
-        mStatusBarView.findViewById(R.id.all_apps).setOnClickListener(mAllAPPClickListener);
+//        mStatusBarView.findViewById(R.id.all_apps).setOnClickListener(mAllAPPClickListener);
 
         mStackScroller = (NotificationStackScrollLayout) mStatusBarWindow.findViewById(
                 R.id.notification_stack_scroller);
@@ -940,7 +940,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         startGlyphRasterizeHack();
         return mStatusBarView;
     }
-
+/*
     private final View.OnClickListener mAllAPPClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -952,7 +952,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             mContext.sendBroadcastAsUser(intent,UserHandle.ALL);    
         }
     };
-
+**/
     private void clearAllNotifications() {
 
         // animate-swipe all dismissable notifications, then animate the shade closed

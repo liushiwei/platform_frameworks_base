@@ -57,13 +57,15 @@
                 android:layout_weight="0"
                 android:contentDescription="@string/accessibility_back"
                 />
-        <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/all_apps"
+        <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/home"
                 android:layout_width="@dimen/navigation_key_width"
                 android:layout_height="match_parent"
-                android:src="@drawable/ic_sysbar_recent"
+                android:src="@drawable/ic_sysbar_home"
+                systemui:keyCode="3"
+                systemui:keyRepeat="false"
                 android:layout_weight="0"
                 android:scaleType="center"
-                android:contentDescription="@string/accessibility_recent"
+                android:contentDescription="@string/accessibility_home"
                 />
                 
         <com.android.systemui.statusbar.AlphaOptimizedFrameLayout
