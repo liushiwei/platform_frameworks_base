@@ -679,6 +679,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
         updateShowSearchHoldoff();
 
+        mStatusBarView.findViewById(R.id.recent_apps).setOnClickListener(mRecentsClickListener);
+        mStatusBarView.findViewById(R.id.recent_apps).setOnTouchListener(mRecentsPreloadOnTouchListener);
+        mStatusBarView.findViewById(R.id.recent_apps).setLongClickable(true);
+        mStatusBarView.findViewById(R.id.recent_apps).setOnLongClickListener(mLongPressBackRecentsListener);
         try {
             boolean showNav = mWindowManagerService.hasNavigationBar();
             if (DEBUG) Log.v(TAG, "hasNavigationBar=" + showNav);
