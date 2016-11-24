@@ -819,7 +819,7 @@ public class WindowManagerService extends IWindowManager.Stub
             boolean haveInputMethods, boolean showBootMsgs, boolean onlyCore) {
         mContext = context;
         mHaveInputMethods = haveInputMethods;
-        mAllowBootMessages = showBootMsgs;
+        mAllowBootMessages = false;
         mOnlyCore = onlyCore;
         mLimitedAlphaCompositing = context.getResources().getBoolean(
                 com.android.internal.R.bool.config_sf_limitedAlpha);
