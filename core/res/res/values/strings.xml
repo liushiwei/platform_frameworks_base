@@ -4033,9 +4033,9 @@
 
     <!-- External media notification strings -->
     <!-- Shown when external media is being checked [CHAR LIMIT=30] -->
-    <string name="ext_media_checking_notification_title" product="nosdcard">Preparing USB storage</string>
+    <string name="ext_media_checking_notification_title" product="nosdcard">Preparing Removable media storage</string>
     <!-- Shown when external media is being checked -->
-    <string name="ext_media_checking_notification_title" product="default">Preparing SD card</string>
+    <string name="ext_media_checking_notification_title" product="default">Preparing Removable media storage</string>
     <string name="ext_media_checking_notification_message">Checking for errors.</string>
 
     <!-- Shown when external media is blank (or unsupported filesystem) [CHAR LIMIT=30] -->
@@ -4055,25 +4055,25 @@
     <string name="ext_media_unmountable_notification_message" product="default">SD card is damaged. Try reformatting it.</string>
 
     <!-- Shown when external media is unsafely removed [CHAR LIMIT=30] -->
-    <string name="ext_media_badremoval_notification_title" product="nosdcard">USB storage unexpectedly removed</string>
+    <string name="ext_media_badremoval_notification_title" product="nosdcard">Removable media storage unexpectedly removed</string>
     <!-- Shown when external media is unsafely removed -->
-    <string name="ext_media_badremoval_notification_title" product="default">SD card unexpectedly removed</string>
+    <string name="ext_media_badremoval_notification_title" product="default">Removable media storage unexpectedly removed</string>
     <!-- Shown when external media is unsafely removed.  [CHAR LIMIT=NONE] -->
-    <string name="ext_media_badremoval_notification_message" product="nosdcard">Unmount USB storage before removing to avoid data loss.</string>
-    <string name="ext_media_badremoval_notification_message" product="default">Unmount SD card before removing to avoid data loss.</string>
+    <string name="ext_media_badremoval_notification_message" product="nosdcard">Unmount removable media storage before removing to avoid data loss.</string>
+    <string name="ext_media_badremoval_notification_message" product="default">Unmount removable media storage before removing to avoid data loss.</string>
 
     <!-- Shown when external media has been safely removed [CHAR LIMIT=30] -->
-    <string name="ext_media_safe_unmount_notification_title" product="nosdcard">USB storage safe to remove</string>
+    <string name="ext_media_safe_unmount_notification_title" product="nosdcard">Removable media storage safe to remove</string>
     <!-- Shown when external media has been safely removed -->
-    <string name="ext_media_safe_unmount_notification_title" product="default">SD card safe to remove</string>
+    <string name="ext_media_safe_unmount_notification_title" product="default">Removable media storage to remove</string>
     <!-- Shown when external media has been safely removed.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_safe_unmount_notification_message" product="nosdcard">You can safely remove USB storage.</string>
     <string name="ext_media_safe_unmount_notification_message" product="default">You can safely remove SD card.</string>
 
     <!-- Shown when external media is missing [CHAR LIMIT=30] -->
-    <string name="ext_media_nomedia_notification_title" product="nosdcard">Removed USB storage</string>
+    <string name="ext_media_nomedia_notification_title" product="nosdcard">Removed Removable media storage</string>
     <!-- Shown when external media is missing -->
-    <string name="ext_media_nomedia_notification_title" product="default">Removed SD card</string>
+    <string name="ext_media_nomedia_notification_title" product="default">Removed Removable media storage</string>
     <!-- Shown when external media is missing.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_nomedia_notification_message" product="nosdcard">USB storage removed. Insert new media.</string>
     <string name="ext_media_nomedia_notification_message" product="default">SD card removed. Insert a new one.</string>

@@ -1414,8 +1414,8 @@
     <string name="usb_cd_installer_notification_title" msgid="6774712827892090754">"作为安装程序连接"</string>
     <string name="usb_accessory_notification_title" msgid="7848236974087653666">"已连接到USB配件"</string>
     <string name="usb_notification_message" msgid="2290859399983720271">"触摸可显示其他USB选项。"</string>
-    <string name="extmedia_format_title" product="nosdcard" msgid="9020092196061007262">"格式化USB存储设备吗？"</string>
-    <string name="extmedia_format_title" product="default" msgid="3648415921526526069">"要格式化SD卡吗？"</string>
+    <string name="extmedia_format_title" product="nosdcard" msgid="9020092196061007262">"格式化可移动存储设备吗？"</string>
+    <string name="extmedia_format_title" product="default" msgid="3648415921526526069">"要格式化可移动存储设备吗？"</string>
     <string name="extmedia_format_message" product="nosdcard" msgid="3934016853425761078">"您的USB存储设备中存储的所有文件都将清除。该操作无法撤消！"</string>
     <string name="extmedia_format_message" product="default" msgid="14131895027543830">"您卡上的所有数据都会丢失。"</string>
     <string name="extmedia_format_button_format" msgid="4131064560127478695">"格式化"</string>
@@ -1430,29 +1430,29 @@
     <string name="fast_scroll_alphabet" msgid="5433275485499039199">" ABCDEFGHIJKLMNOPQRSTUVWXYZ"</string>
     <string name="fast_scroll_numeric_alphabet" msgid="4030170524595123610">" 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"</string>
     <string name="candidates_style" msgid="4333913089637062257"><u>"候选"</u></string>
-    <string name="ext_media_checking_notification_title" product="nosdcard" msgid="3449816005351468560">"正在准备USB存储设备"</string>
-    <string name="ext_media_checking_notification_title" product="default" msgid="5457603418970994050">"正在准备SD卡"</string>
+    <string name="ext_media_checking_notification_title" product="nosdcard" msgid="3449816005351468560">"正在准备可移动存储设备"</string>
+    <string name="ext_media_checking_notification_title" product="default" msgid="5457603418970994050">"正在准备可移动存储设备"</string>
     <string name="ext_media_checking_notification_message" msgid="8287319882926737053">"正在检查是否有错误。"</string>
     <string name="ext_media_nofs_notification_title" product="nosdcard" msgid="7788040745686229307">"USB存储设备中无文件"</string>
     <string name="ext_media_nofs_notification_title" product="default" msgid="780477838241212997">"空SD卡"</string>
     <string name="ext_media_nofs_notification_message" product="nosdcard" msgid="7840121067427269500">"USB存储设备中没有任何文件或使用了不支持的文件系统。"</string>
     <string name="ext_media_nofs_notification_message" product="default" msgid="8641065641786923604">"SD卡中没有任何文件或使用了不支持的文件系统。"</string>
-    <string name="ext_media_unmountable_notification_title" product="nosdcard" msgid="2090046769532713563">"USB存储设备已损坏"</string>
-    <string name="ext_media_unmountable_notification_title" product="default" msgid="6410723906019100189">"SD卡受损"</string>
-    <string name="ext_media_unmountable_notification_message" product="nosdcard" msgid="1795917578395333280">"USB存储设备已损坏，请尝试重新格式化。"</string>
-    <string name="ext_media_unmountable_notification_message" product="default" msgid="1753898567525568253">"SD卡已损坏，请尝试重新格式化。"</string>
-    <string name="ext_media_badremoval_notification_title" product="nosdcard" msgid="1661683031330951073">"USB存储设备已意外移除"</string>
-    <string name="ext_media_badremoval_notification_title" product="default" msgid="6872152882604407837">"SD卡未正常移除"</string>
-    <string name="ext_media_badremoval_notification_message" product="nosdcard" msgid="4329848819865594241">"请先卸载USB存储设备，再将其移除，以防数据丢失。"</string>
-    <string name="ext_media_badremoval_notification_message" product="default" msgid="7260183293747448241">"请先卸载SD卡，再将其移除，以防数据丢失。"</string>
-    <string name="ext_media_safe_unmount_notification_title" product="nosdcard" msgid="3967973893270360230">"USB存储设备已安全移除"</string>
-    <string name="ext_media_safe_unmount_notification_title" product="default" msgid="6729801130790616200">"SD卡已安全移除"</string>
+    <string name="ext_media_unmountable_notification_title" product="nosdcard" msgid="2090046769532713563">"可移动存储设备已损坏"</string>
+    <string name="ext_media_unmountable_notification_title" product="default" msgid="6410723906019100189">"可移动存储设备受损"</string>
+    <string name="ext_media_unmountable_notification_message" product="nosdcard" msgid="1795917578395333280">"可移动存储设备已损坏，请尝试重新格式化。"</string>
+    <string name="ext_media_unmountable_notification_message" product="default" msgid="1753898567525568253">"可移动存储设备已损坏，请尝试重新格式化。"</string>
+    <string name="ext_media_badremoval_notification_title" product="nosdcard" msgid="1661683031330951073">"可移动存储设备已意外移除"</string>
+    <string name="ext_media_badremoval_notification_title" product="default" msgid="6872152882604407837">"可移动存储设备未正常移除"</string>
+    <string name="ext_media_badremoval_notification_message" product="nosdcard" msgid="4329848819865594241">"请先卸载可移动存储设备，再将其移除，以防数据丢失。"</string>
+    <string name="ext_media_badremoval_notification_message" product="default" msgid="7260183293747448241">"请先卸载可移动存储设备，再将其移除，以防数据丢失。"</string>
+    <string name="ext_media_safe_unmount_notification_title" product="nosdcard" msgid="3967973893270360230">"可移动存储设备已安全移除"</string>
+    <string name="ext_media_safe_unmount_notification_title" product="default" msgid="6729801130790616200">"可移动存储设备已安全移除"</string>
     <string name="ext_media_safe_unmount_notification_message" product="nosdcard" msgid="6142195361606493530">"您可以安全地移除USB存储设备。"</string>
     <string name="ext_media_safe_unmount_notification_message" product="default" msgid="568841278138377604">"您现在可以安全移除SD卡。"</string>
-    <string name="ext_media_nomedia_notification_title" product="nosdcard" msgid="4486377230140227651">"USB存储设备已移除"</string>
-    <string name="ext_media_nomedia_notification_title" product="default" msgid="8902518030404381318">"已移除SD卡"</string>
-    <string name="ext_media_nomedia_notification_message" product="nosdcard" msgid="6921126162580574143">"USB存储设备已移除。请插入新媒体。"</string>
-    <string name="ext_media_nomedia_notification_message" product="default" msgid="3870120652983659641">"SD卡已移除。请插入新的SD卡。"</string>
+    <string name="ext_media_nomedia_notification_title" product="nosdcard" msgid="4486377230140227651">"可移动存储设备已移除"</string>
+    <string name="ext_media_nomedia_notification_title" product="default" msgid="8902518030404381318">"已移除可移动存储设备"</string>
+    <string name="ext_media_nomedia_notification_message" product="nosdcard" msgid="6921126162580574143">"可移动存储设备已移除。请插入新媒体。"</string>
+    <string name="ext_media_nomedia_notification_message" product="default" msgid="3870120652983659641">"可移动存储设备已移除。请插入新的SD卡。"</string>
     <string name="activity_list_empty" msgid="1675388330786841066">"未找到匹配的活动。"</string>
     <string name="permlab_pkgUsageStats" msgid="8787352074326748892">"更新组件使用情况统计"</string>
     <string name="permdesc_pkgUsageStats" msgid="1106612424254277630">"允许应用修改收集到的组件使用情况统计信息。普通应用不应使用此权限。"</string>
