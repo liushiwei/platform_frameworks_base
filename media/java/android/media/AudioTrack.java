@@ -39,7 +39,16 @@ import android.util.Log;
 
 import com.android.internal.app.IAppOpsService;
 
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.UnsupportedEncodingException;
+import android.os.HandlerThread;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 /**
  * The AudioTrack class manages and plays a single audio resource for Java applications.
  * It allows streaming of PCM audio buffers to the audio sink for playback. This is
@@ -279,6 +288,100 @@ public class AudioTrack
     @SuppressWarnings("unused")
     private long mJniData;
 
+////////////////////////////////////////////////////////////////////////////////////////
+    private static final boolean DEBUG = false;
+    private boolean mIsGpsSound;
+    private boolean mIsAmap = false;
+
+    private static final String GPS_SOUND_CONTROL = "amapauto";
+    //private static final String GPS_SOUND_CONTROL2 = "ritu.rtnavi";
+    private static final String PROPERTIESFILE = "/data/system/.properties_file";
+    private static String mGpsControl = null;
+
+     private Handler mGpsHandler = null;
+    private Runnable gpsturnoffRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            if(DEBUG)
+            Log.e("GPSTEST", "++++++++++++++++++++++++++++++++AudioTrack postEventFromNative turnOffGpsSound");
+            turnOffGpsSound();
+        }
+    };
+
+
+    private   void turnOnGpsSound(){
+        if(DEBUG)
+        Log.d(TAG,"------------------------turnOnGpsSound");
+        try    {
+            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio80/value"));
+            out.write('1');
+            out.close();
+            out = new FileOutputStream(new File("/sys/class/gpio/gpio74/value"));
+            out.write('0');
+            out.close();
+        }catch(Exception e)    {
+            System.out.println(e);
+        }
+    }
+
+
+    private   void turnOffGpsSound(){
+        if(DEBUG)
+       Log.d(TAG,"------------------------turnOffGpsSound" );
+        try    {
+            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio80/value"));
+            out.write('0');
+            out.close();
+            out = new FileOutputStream(new File("/sys/class/gpio/gpio74/value"));
+            out.write('1');
+            out.close();
+        }catch(Exception e)    {
+            System.out.println(e);
+        }
+    }
+    
+    private static final int GPS_DELAY_TIME = 3000;
+    
+    private static long mGpsTime = 0;
+    
+    private void startMonitor(){
+      
+        turnOffGpsSound();
+    }
+    
+    private void stopMonitor(){
+        mGpsTime = System.currentTimeMillis();
+    }
+
+    private String getPackageName() {
+        BufferedReader cmdlineReader = null;
+        try {
+            cmdlineReader = new BufferedReader(new InputStreamReader(
+                    new FileInputStream("/proc/" + android.os.Process.myPid()
+                            + "/cmdline"), "iso-8859-1"));
+            int c;
+            StringBuilder processName = new StringBuilder();
+            while ((c = cmdlineReader.read()) > 0) {
+                processName.append((char) c);
+            }
+            return processName.toString();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            if (cmdlineReader != null) {
+                try {
+                    cmdlineReader.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        return "";
+    }
+
 
     //--------------------------------------------------------------------------
     // Constructor, Finalize
@@ -355,6 +458,7 @@ public class AudioTrack
     public AudioTrack(int streamType, int sampleRateInHz, int channelConfig, int audioFormat,
             int bufferSizeInBytes, int mode, int sessionId)
     throws IllegalArgumentException {
+
         // mState already == STATE_UNINITIALIZED
         this((new AudioAttributes.Builder())
                     .setLegacyStreamType(streamType)
@@ -391,6 +495,64 @@ public class AudioTrack
     public AudioTrack(AudioAttributes attributes, AudioFormat format, int bufferSizeInBytes,
             int mode, int sessionId)
                     throws IllegalArgumentException {
+
+        ////////////////////////////////////////////////////////////////////////////
+        if (mGpsControl == null){              
+                File file = new File(PROPERTIESFILE);
+                String packageName = null;
+                if(file.exists()){
+                    BufferedReader buf;
+                    String source=null;
+                    
+                    try {
+                        buf = new BufferedReader(new FileReader(file));
+                        do{
+                            source =buf.readLine();
+                            
+                            if(source !=null&&source.startsWith("nav_app_package_name=")){
+                                packageName = source.substring(source.indexOf("=")+1);
+                                if (packageName != null){
+                                    
+                                if (packageName.length() > 14){
+                                    mGpsControl = packageName.substring(packageName.length() - 14, packageName.length());
+                                }else{
+                                    mGpsControl = packageName;
+                                }
+                                }
+                                
+                            }
+                        }while(source!=null);
+                        buf.close();
+                    } catch (FileNotFoundException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                if (mGpsControl == null)
+                    mGpsControl = GPS_SOUND_CONTROL;
+                
+                if(DEBUG)
+                Log.d(TAG,"config file gps is:" + mGpsControl);
+        }
+        String packageName = getPackageName();
+        if(DEBUG)
+            Log.e("GPSTEST","-----------packageName ="+packageName);
+        if (packageName.contains(mGpsControl)){
+            mIsGpsSound = true;
+            attributes = (new AudioAttributes.Builder()).setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
+            HandlerThread handlerThread = new HandlerThread("gpsthreadone");  
+            handlerThread.start();  
+            mGpsHandler =  new Handler(handlerThread.getLooper()); 
+            mIsAmap = true;
+        }
+        else{
+            mIsGpsSound = false;
+        }
+        //////////////////////////////////////////////////////////////////////////////
         // mState already == STATE_UNINITIALIZED
 
         if (attributes == null) {
@@ -609,6 +771,11 @@ public class AudioTrack
      * Releases the native AudioTrack resources.
      */
     public void release() {
+
+        /////////////////////////////////////
+        if (mIsGpsSound&&!mIsAmap)
+        turnOffGpsSound();
+        ////////////////////////////////////
         // even though native_release() stops the native AudioTrack, we need to stop
         // AudioTrack subclasses too.
         try {
@@ -1137,6 +1304,13 @@ public class AudioTrack
      */
     public void play()
     throws IllegalStateException {
+///////////////////////////////////////////
+         if (mIsGpsSound&&!mIsAmap){
+            stopMonitor();
+            turnOnGpsSound();
+        }
+        /////////////////////////////////////////////////
+
         if (mState != STATE_INITIALIZED) {
             throw new IllegalStateException("play() called on uninitialized AudioTrack.");
         }
@@ -1179,6 +1353,11 @@ public class AudioTrack
             native_stop();
             mPlayState = PLAYSTATE_STOPPED;
         }
+        ////////////////////////////////////////
+        if (mIsGpsSound&&!mIsAmap){
+            startMonitor();
+        }
+        /////////////////////////////////////////
     }
 
     /**
@@ -1242,13 +1421,30 @@ public class AudioTrack
 
     public int write(byte[] audioData, int offsetInBytes, int sizeInBytes) {
 
+        ///////////////////////////////////////////////////////
+        if(mIsAmap&&mGpsHandler!=null){
+            mGpsHandler.removeCallbacks(gpsturnoffRunnable);
+            turnOnGpsSound();
+        }
+        //////////////////////////////////////////////////////////
+
         if (mState == STATE_UNINITIALIZED || mAudioFormat == AudioFormat.ENCODING_PCM_FLOAT) {
+            //////////////////////////////////////////
+            if(mIsAmap&&mGpsHandler!=null){
+                mGpsHandler.postDelayed(gpsturnoffRunnable, 500);
+            }
+            ///////////////////////////////////////////
             return ERROR_INVALID_OPERATION;
         }
 
         if ( (audioData == null) || (offsetInBytes < 0 ) || (sizeInBytes < 0)
                 || (offsetInBytes + sizeInBytes < 0)    // detect integer overflow
                 || (offsetInBytes + sizeInBytes > audioData.length)) {
+            ///////////////////////////////////////////////////
+            if(mIsAmap&&mGpsHandler!=null){
+                mGpsHandler.postDelayed(gpsturnoffRunnable, 500);
+            }
+            ///////////////////////////////////////////////////
             return ERROR_BAD_VALUE;
         }
 
@@ -1261,6 +1457,12 @@ public class AudioTrack
             // benign race with respect to other APIs that read mState
             mState = STATE_INITIALIZED;
         }
+
+        /////////////////////////////////////////////////////////
+        if(mIsAmap&&mGpsHandler!=null){
+           mGpsHandler.postDelayed(gpsturnoffRunnable, 500);
+        }
+        /////////////////////////////////////////////////////////
 
         return ret;
     }
@@ -1611,6 +1813,12 @@ public class AudioTrack
         if (track == null) {
             return;
         }
+
+        //////////////////////////////////////////////////////
+        if (track.mIsGpsSound&&!track.mIsAmap && what == 5){
+            track.startMonitor();
+        } 
+        ///////////////////////////////////////////////////////
 
         NativeEventHandlerDelegate delegate = track.mEventHandlerDelegate;
         if (delegate != null) {
