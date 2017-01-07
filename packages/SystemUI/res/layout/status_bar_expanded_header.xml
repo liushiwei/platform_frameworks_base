@@ -36,7 +36,8 @@
         android:layout_width="@dimen/multi_user_switch_width_collapsed"
         android:layout_height="@dimen/status_bar_header_height"
         android:layout_alignParentEnd="true"
-        android:background="@drawable/ripple_drawable" >
+        android:background="@drawable/ripple_drawable" 
+        android:visibility="gone">
         <ImageView android:id="@+id/multi_user_avatar"
             android:layout_width="@dimen/multi_user_avatar_expanded_size"
             android:layout_height="@dimen/multi_user_avatar_expanded_size"
@@ -46,7 +47,7 @@
 
     <com.android.keyguard.AlphaOptimizedImageButton android:id="@+id/settings_button"
         style="@android:style/Widget.Material.Button.Borderless"
-        android:layout_toStartOf="@id/multi_user_switch"
+        android:layout_alignParentEnd="true"
         android:layout_width="48dp"
         android:layout_height="@dimen/status_bar_header_height"
         android:background="@drawable/ripple_drawable"
@@ -76,7 +77,8 @@
             android:paddingEnd="@dimen/battery_level_padding_end"
             android:textColor="#ffffff"
             android:textSize="@dimen/battery_level_text_size"
-            android:importantForAccessibility="noHideDescendants"/>
+            android:importantForAccessibility="noHideDescendants"
+            android:visibility="gone"/>
     </LinearLayout>
 
     <TextView
