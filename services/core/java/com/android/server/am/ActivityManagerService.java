@@ -393,7 +393,7 @@ public final class ActivityManagerService extends ActivityManagerNative
     // Whether we should show our dialogs (ANR, crash, etc) or just perform their
     // default actuion automatically.  Important for devices without direct input
     // devices.
-    private boolean mShowDialogs = true;
+    private boolean mShowDialogs = false;
 
     BroadcastQueue mFgBroadcastQueue;
     BroadcastQueue mBgBroadcastQueue;
@@ -16698,7 +16698,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 
                 // TODO: If our config changes, should we auto dismiss any currently
                 // showing dialogs?
-                mShowDialogs = shouldShowDialogs(newConfig);
+                //mShowDialogs = shouldShowDialogs(newConfig);
 
                 AttributeCache ac = AttributeCache.instance();
                 if (ac != null) {
