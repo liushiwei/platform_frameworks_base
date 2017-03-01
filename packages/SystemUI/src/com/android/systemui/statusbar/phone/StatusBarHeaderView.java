@@ -198,7 +198,7 @@ public class StatusBarHeaderView extends RelativeLayout implements View.OnClickL
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        FontSizeUtils.updateFontSize(mBatteryLevel, R.dimen.battery_level_text_size);
+        //FontSizeUtils.updateFontSize(mBatteryLevel, R.dimen.battery_level_text_size);
         FontSizeUtils.updateFontSize(mEmergencyCallsOnly,
                 R.dimen.qs_emergency_calls_only_text_size);
         FontSizeUtils.updateFontSize(mDateCollapsed, R.dimen.qs_date_collapsed_size);
@@ -327,7 +327,7 @@ public class StatusBarHeaderView extends RelativeLayout implements View.OnClickL
             updateSignalClusterDetachment();
         }
         mEmergencyCallsOnly.setVisibility(mExpanded && mShowEmergencyCallsOnly ? VISIBLE : GONE);
-        mBatteryLevel.setVisibility(mExpanded ? View.VISIBLE : View.GONE);
+        //mBatteryLevel.setVisibility(mExpanded ? View.VISIBLE : View.GONE);
     }
 
     private void updateSignalClusterDetachment() {
