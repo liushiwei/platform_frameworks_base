@@ -314,10 +314,10 @@ public class AudioTrack
         if(DEBUG)
         Log.d(TAG,"------------------------turnOnGpsSound");
         try    {
-            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio80/value"));
+            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
             out.write('1');
             out.close();
-            out = new FileOutputStream(new File("/sys/class/gpio/gpio74/value"));
+            out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
             out.write('0');
             out.close();
         }catch(Exception e)    {
@@ -330,10 +330,10 @@ public class AudioTrack
         if(DEBUG)
        Log.d(TAG,"------------------------turnOffGpsSound" );
         try    {
-            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio80/value"));
+            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
             out.write('0');
             out.close();
-            out = new FileOutputStream(new File("/sys/class/gpio/gpio74/value"));
+            out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
             out.write('1');
             out.close();
         }catch(Exception e)    {
