@@ -296,7 +296,52 @@ public class AudioTrack
     private static final String GPS_SOUND_CONTROL = "amapauto";
     //private static final String GPS_SOUND_CONTROL2 = "ritu.rtnavi";
     private static final String PROPERTIESFILE = "/data/system/.properties_file";
+    private static final String BT_FLAG_FILE = "/data/system/.bt_flag";
     private static String mGpsControl = null;
+
+
+    // //////////////////////////////////cartype/////////////////////////////////////////
+    public enum CARID {
+        /**
+         * no can
+         */
+        CARID_COMM(0),
+        /**
+         * CRV
+         */
+        CARID_AUDIQ3(1),
+        /**
+         * MONDEO
+         */
+        CARID_AUDIQ5(2),
+        
+        CARID_BENZ(3);
+        
+        
+        int value;
+
+        private CARID(int value) {
+            this.value = value;
+        }
+
+        public int value() {
+            return value;
+        }
+
+        public static CARID valueof(int value) {
+            switch (value) {
+            default:
+            case 0:
+                return CARID_COMM;
+            case 1:
+                return CARID_AUDIQ3;
+            case 2:
+                return CARID_AUDIQ5;
+            case 3:
+                return CARID_BENZ;
+            }
+        }
+    }
 
      private Handler mGpsHandler = null;
     private Runnable gpsturnoffRunnable = new Runnable() {
@@ -312,14 +357,27 @@ public class AudioTrack
 
     private   void turnOnGpsSound(){
         if(DEBUG)
-        Log.d(TAG,"------------------------turnOnGpsSound");
+        Log.d(TAG,"------------------------turnOnGpsSound mCarid="+mCarid);
         try    {
-            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
-            out.write('1');
-            out.close();
-            out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
-            out.write('0');
-            out.close();
+            if(getBTCallFlag()==1){
+                return;
+            }
+            if(mCarid==CARID.CARID_AUDIQ3){
+                //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio72/value   1" );
+                FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
+                out.write('1');
+                out.close();
+                //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio158/value   0" );
+                out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
+                out.write('0');
+                out.close();
+            }
+            if(mCarid==CARID.CARID_AUDIQ5){
+                //Log.d(TAG,"-------------CARID.CARID_AUDIQ5-----------/sys/class/gpio/gpio158/value   1" );
+                FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
+                out.write('1');
+                out.close();
+            }
         }catch(Exception e)    {
             System.out.println(e);
         }
@@ -328,14 +386,24 @@ public class AudioTrack
 
     private   void turnOffGpsSound(){
         if(DEBUG)
-       Log.d(TAG,"------------------------turnOffGpsSound" );
+       Log.d(TAG,"------------------------turnOffGpsSound mCarid = " +mCarid);
         try    {
-            FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
-            out.write('0');
-            out.close();
-            out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
-            out.write('1');
-            out.close();
+            if(mCarid==CARID.CARID_AUDIQ3){
+                //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio72/value   0" );
+                FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
+                out.write('0');
+                out.close();
+                //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio158/value   1" );
+                out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
+                out.write('1');
+                out.close();
+            }
+            if(mCarid==CARID.CARID_AUDIQ5){
+                //Log.d(TAG,"-------------CARID.CARID_AUDIQ5-----------/sys/class/gpio/gpio158/value   0" );
+                FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
+                out.write('0');
+                out.close();
+            }
         }catch(Exception e)    {
             System.out.println(e);
         }
@@ -381,6 +449,23 @@ public class AudioTrack
         }
         return "";
     }
+
+    private int getBTCallFlag(){
+        try {
+            File file = new File(BT_FLAG_FILE);
+            if (!file.exists()) {
+                return 0;
+            }
+            FileInputStream input  = new FileInputStream(file);
+            int result = input.read();
+            return result==1?1:0;
+         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private static CARID mCarid  = CARID.CARID_AUDIQ3;
 
 
     //--------------------------------------------------------------------------
@@ -501,6 +586,8 @@ public class AudioTrack
                 File file = new File(PROPERTIESFILE);
                 String packageName = null;
                 if(file.exists()){
+
+                    Log.d(TAG,"-------------get File-----------"+PROPERTIESFILE );
                     BufferedReader buf;
                     String source=null;
                     
@@ -508,7 +595,7 @@ public class AudioTrack
                         buf = new BufferedReader(new FileReader(file));
                         do{
                             source =buf.readLine();
-                            
+                            Log.d(TAG,"-------------get line-----------"+source );
                             if(source !=null&&source.startsWith("nav_app_package_name=")){
                                 packageName = source.substring(source.indexOf("=")+1);
                                 if (packageName != null){
@@ -520,6 +607,13 @@ public class AudioTrack
                                 }
                                 }
                                 
+                            }
+                            if(source !=null&&source.startsWith("car_id=")){
+                                 Log.d(TAG,"-------------get car_id-----------" );
+                                String car_id = source.substring(source.indexOf("=")+1);
+                                Log.d(TAG,"-------------get car_id-----------"+car_id );
+                                int id = Integer.valueOf(car_id);
+                                mCarid =  CARID.values()[id];
                             }
                         }while(source!=null);
                         buf.close();
