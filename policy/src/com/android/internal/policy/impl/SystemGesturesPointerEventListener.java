@@ -78,6 +78,9 @@ public class SystemGesturesPointerEventListener implements PointerEventListener 
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 captureDown(event, event.getActionIndex());
+                if(event.getPointerCount() >2){
+                    mCallbacks.onGetMultiPointersDown(event.getPointerCount()); 
+                }
                 if (mDebugFireable) {
                     mDebugFireable = event.getPointerCount() < 5;
                     if (!mDebugFireable) {
@@ -193,5 +196,6 @@ public class SystemGesturesPointerEventListener implements PointerEventListener 
         void onSwipeFromBottom();
         void onSwipeFromRight();
         void onDebug();
+        void onGetMultiPointersDown(int count);
     }
 }

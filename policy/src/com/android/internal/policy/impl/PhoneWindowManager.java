@@ -584,6 +584,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int MSG_LAUNCH_VOICE_ASSIST_WITH_WAKE_LOCK = 12;
     private static final int MSG_POWER_DELAYED_PRESS = 13;
     private static final int MSG_POWER_LONG_PRESS = 14;
+    private static final int MSG_THREE_POINTERS_PRESS = 15;
 
     private class PolicyHandler extends Handler {
         @Override
@@ -631,6 +632,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     break;
                 case MSG_POWER_LONG_PRESS:
                     powerLongPress();
+                    break;
+                case MSG_THREE_POINTERS_PRESS:
+                    mContext.sendBroadcastAsUser(new Intent("com.george.settings.switch_source"), UserHandle.ALL);
                     break;
             }
         }
@@ -1315,6 +1319,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     @Override
                     public void onDebug() {
                         // no-op
+                    }
+                    @Override
+                    public void onGetMultiPointersDown(int count){
+                        if(count == 3){
+                            mHandler.sendEmptyMessage(MSG_THREE_POINTERS_PRESS);
+                        }
                     }
                 });
         mImmersiveModeConfirmation = new ImmersiveModeConfirmation(mContext);
