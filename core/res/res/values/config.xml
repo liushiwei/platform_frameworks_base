@@ -690,6 +690,9 @@
          for example, /dev/ttyUSB0
     -->
     <string-array translatable="false" name="config_serialPorts">
+	<item>/dev/ttySAC0</item>
+	<item>/dev/ttySAC1</item>
+	<item>/dev/ttySAC2</item>
 	<item>/dev/ttySAC4</item>
 	<item>/dev/ttySAC3</item>
 	<item>/dev/ttySAC5</item>
