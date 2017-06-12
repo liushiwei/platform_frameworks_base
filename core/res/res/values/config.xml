@@ -696,6 +696,7 @@
 	<item>/dev/ttySAC4</item>
 	<item>/dev/ttySAC3</item>
 	<item>/dev/ttySAC5</item>
+	<item>/dev/ttyBT</item>
     </string-array>
 
     <!-- Vibrator pattern for feedback about a long screen/key press -->

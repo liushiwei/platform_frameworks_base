@@ -49,6 +49,7 @@ import android.view.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import android.os.UserHandle;
 
 /**
  * AudioManager provides access to volume and ringer mode control.
@@ -2528,6 +2529,19 @@ public class AudioManager {
                     mAudioFocusDispatcher, getIdForAudioFocusListener(l),
                     mContext.getOpPackageName() /* package name */, flags,
                     ap != null ? ap.cb() : null);
+            if(status == AUDIOFOCUS_REQUEST_GRANTED && durationHint == AUDIOFOCUS_GAIN){
+		if("com.george.bluetooth".equals(mContext.getOpPackageName())||"com.george.bluetooth.service".equals(mContext.getOpPackageName())){
+			Intent intent = new Intent("com.george.intent.audio_source");
+			intent.putExtra("source",2);
+			mContext.sendBroadcast(intent);
+		}
+		if(!("com.george.bluetooth".equals(mContext.getOpPackageName()))&&!("com.george.bluetooth.service".equals(mContext.getOpPackageName()))&&!("com.george.dtv".equals(mContext.getOpPackageName()))&&!("com.george.auxin".equals(mContext.getOpPackageName()))){
+			Intent intent = new Intent("com.george.intent.audio_source");
+		              intent.putExtra("source",0);
+		              mContext.sendBroadcast(intent);
+		}
+              }
+
         } catch (RemoteException e) {
             Log.e(TAG, "Can't call requestAudioFocus() on AudioService:", e);
         }
