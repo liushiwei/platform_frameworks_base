@@ -458,6 +458,7 @@ public class AudioTrack
             }
             FileInputStream input  = new FileInputStream(file);
             int result = input.read();
+	    input.close();
             return result==1?1:0;
          } catch (Exception e) {
             e.printStackTrace();
