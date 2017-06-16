@@ -298,9 +298,11 @@ public class AudioTrack
     private static final String PROPERTIESFILE = "/data/system/.properties_file";
     private static final String BT_FLAG_FILE = "/data/system/.bt_flag";
     private static String mGpsControl = null;
-
+    private boolean isDestroy = false;
+    private Thread mHandlerThread;
 
     // //////////////////////////////////cartype/////////////////////////////////////////
+   /** @hide */
     public enum CARID {
         /**
          * no can
@@ -319,15 +321,15 @@ public class AudioTrack
         
         
         int value;
-
+         /** @hide */
         private CARID(int value) {
             this.value = value;
         }
-
+         /** @hide */
         public int value() {
             return value;
         }
-
+         /** @hide */
         public static CARID valueof(int value) {
             switch (value) {
             default:
@@ -343,25 +345,50 @@ public class AudioTrack
         }
     }
 
-     private Handler mGpsHandler = null;
+    // private Handler mGpsHandler = null;
+    private int count = 5;
     private Runnable gpsturnoffRunnable = new Runnable() {
 
         @Override
         public void run() {
-            if(DEBUG)
-            Log.e("GPSTEST", "++++++++++++++++++++++++++++++++AudioTrack postEventFromNative turnOffGpsSound");
-            turnOffGpsSound();
+            // if(DEBUG)
+            // Log.e("GPSTEST", "++++++++++++++++++++++++++++++++AudioTrack postEventFromNative turnOffGpsSound");
+            while(!isDestroy){
+                    if(count>0){
+                    try{
+                          Thread.sleep(100);
+                    }catch(InterruptedException e){
+                        
+                    }
+                     
+                       count--;
+                }else{
+                    if(count == 0){
+                    if(DEBUG)
+                    Log.e("GPSTEST", ">>>>>>>>>>>>>>>>>>>>AudioTrack postEventFromNative turnOffGpsSound");
+                        turnOffGpsSound();  
+                        count--;   
+                    }
+                    try{
+                          Thread.sleep(100);
+                    }catch(InterruptedException e){
+                        
+                    }
+                }
+            }
+            
+            
         }
     };
 
-
+   /** @hide */
     private   void turnOnGpsSound(){
         if(DEBUG)
-        Log.d(TAG,"------------------------turnOnGpsSound mCarid="+mCarid);
+        Log.d(TAG,"++++++++++++++++++++++turnOnGpsSound mCarid="+mCarid);
         try    {
-            if(getBTCallFlag()==1){
-                return;
-            }
+               if(getBTCallFlag()==1){
+                   return;
+               }
             if(mCarid==CARID.CARID_AUDIQ3){
                 //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio72/value   1" );
                 FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
@@ -383,7 +410,7 @@ public class AudioTrack
         }
     }
 
-
+    /** @hide */
     private   void turnOffGpsSound(){
         if(DEBUG)
        Log.d(TAG,"------------------------turnOffGpsSound mCarid = " +mCarid);
@@ -412,16 +439,15 @@ public class AudioTrack
     private static final int GPS_DELAY_TIME = 3000;
     
     private static long mGpsTime = 0;
-    
+   /** @hide */
     private void startMonitor(){
-      
         turnOffGpsSound();
     }
-    
+   /** @hide */
     private void stopMonitor(){
         mGpsTime = System.currentTimeMillis();
     }
-
+   /** @hide */
     private String getPackageName() {
         BufferedReader cmdlineReader = null;
         try {
@@ -449,7 +475,7 @@ public class AudioTrack
         }
         return "";
     }
-
+   /** @hide */
     private int getBTCallFlag(){
         try {
             File file = new File(BT_FLAG_FILE);
@@ -639,9 +665,10 @@ public class AudioTrack
         if (packageName.contains(mGpsControl)){
             mIsGpsSound = true;
             attributes = (new AudioAttributes.Builder()).setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
-            HandlerThread handlerThread = new HandlerThread("gpsthreadone");  
-            handlerThread.start();  
-            mGpsHandler =  new Handler(handlerThread.getLooper()); 
+            mHandlerThread = new Thread(gpsturnoffRunnable,"gpsthreadone");  
+            mHandlerThread.start();  
+            // mGpsHandler =  new Handler(mHandlerThread.getLooper());
+            // mGpsHandler.post(gpsturnoffRunnable); 
             mIsAmap = true;
         }
         else{
@@ -868,8 +895,12 @@ public class AudioTrack
     public void release() {
 
         /////////////////////////////////////
-        if (mIsGpsSound&&!mIsAmap)
-        turnOffGpsSound();
+        if (mIsGpsSound&&!mIsAmap){
+            isDestroy = true;
+            mHandlerThread.interrupt();
+            turnOffGpsSound();
+        }
+        
         ////////////////////////////////////
         // even though native_release() stops the native AudioTrack, we need to stop
         // AudioTrack subclasses too.
@@ -1037,7 +1068,7 @@ public class AudioTrack
      *
      * DO NOT UNHIDE. The existing approach for doing A/V sync has too many problems. We need
      * a better solution.
-     * @hide
+     *  * @hide
      */
     public int getLatency() {
         return native_get_latency();
@@ -1517,16 +1548,16 @@ public class AudioTrack
     public int write(byte[] audioData, int offsetInBytes, int sizeInBytes) {
 
         ///////////////////////////////////////////////////////
-        if(mIsAmap&&mGpsHandler!=null){
-            mGpsHandler.removeCallbacks(gpsturnoffRunnable);
+        if(mIsAmap){
+            count =5;
             turnOnGpsSound();
         }
         //////////////////////////////////////////////////////////
 
         if (mState == STATE_UNINITIALIZED || mAudioFormat == AudioFormat.ENCODING_PCM_FLOAT) {
             //////////////////////////////////////////
-            if(mIsAmap&&mGpsHandler!=null){
-                mGpsHandler.postDelayed(gpsturnoffRunnable, 500);
+            if(mIsAmap){
+                count =5;
             }
             ///////////////////////////////////////////
             return ERROR_INVALID_OPERATION;
@@ -1536,8 +1567,8 @@ public class AudioTrack
                 || (offsetInBytes + sizeInBytes < 0)    // detect integer overflow
                 || (offsetInBytes + sizeInBytes > audioData.length)) {
             ///////////////////////////////////////////////////
-            if(mIsAmap&&mGpsHandler!=null){
-                mGpsHandler.postDelayed(gpsturnoffRunnable, 500);
+            if(mIsAmap){
+               count =5;
             }
             ///////////////////////////////////////////////////
             return ERROR_BAD_VALUE;
@@ -1554,8 +1585,8 @@ public class AudioTrack
         }
 
         /////////////////////////////////////////////////////////
-        if(mIsAmap&&mGpsHandler!=null){
-           mGpsHandler.postDelayed(gpsturnoffRunnable, 500);
+        if(mIsAmap){
+           count =5;
         }
         /////////////////////////////////////////////////////////
 

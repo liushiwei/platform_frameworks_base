@@ -14283,17 +14283,6 @@ package android.media {
     field public static final int WRITE_NON_BLOCKING = 1; // 0x1
   }
 
-  public static final class AudioTrack.CARID extends java.lang.Enum {
-    method public int value();
-    method public static android.media.AudioTrack.CARID valueOf(java.lang.String);
-    method public static android.media.AudioTrack.CARID valueof(int);
-    method public static final android.media.AudioTrack.CARID[] values();
-    enum_constant public static final android.media.AudioTrack.CARID CARID_AUDIQ3;
-    enum_constant public static final android.media.AudioTrack.CARID CARID_AUDIQ5;
-    enum_constant public static final android.media.AudioTrack.CARID CARID_BENZ;
-    enum_constant public static final android.media.AudioTrack.CARID CARID_COMM;
-  }
-
   public static abstract interface AudioTrack.OnPlaybackPositionUpdateListener {
     method public abstract void onMarkerReached(android.media.AudioTrack);
     method public abstract void onPeriodicNotification(android.media.AudioTrack);
