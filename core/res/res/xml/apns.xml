@@ -21,5 +21,45 @@
 <!-- If you edit this version, also edit the version in the partner-supplied
     apns-conf.xml configuration file -->
 <apns version="8">
-
+<!--	
+  <apn carrier="CMWAP"  
+      mcc="460"  
+      mnc="00"  
+      apn="cmwap"  
+      proxy="10.0.0.172"  
+      port="80"  
+  />  
+    -->
+    <apn carrier="中国电信"  
+      mcc="460"  
+      mnc="11"  
+      apn="ctnet"  
+      username="m2m"
+      type="default,supl,net"  
+  />  
+  <apn carrier="CMNET"  
+      mcc="460"  
+      mnc="00"  
+      apn="cmnet"  
+      type="default,supl,net"  
+  />  
+    
+  <apn carrier="中国移动彩信 (China Mobile)"  
+      mcc="460"  
+      mnc="00"  
+      apn="cmwap"  
+      proxy="10.0.0.172"  
+      port="80"  
+      mmsc="http://mmsc.monternet.com"  
+      mmsproxy="10.0.0.172"  
+      mmsport="80"  
+      type="mms"  
+  />  
+    
+  <apn carrier="中国联通 3g 网络 (China Unicom)"  
+      mcc="460"  
+      mnc="01"  
+      apn="3gnet"  
+      type="default,supl,net"  
+  />  
 </apns>
