@@ -356,7 +356,7 @@ bool BootAnimation::android()
     do {
         nsecs_t now = systemTime();
         double time = now - startTime;
-        float t = 4.0f * float(time / us2ns(16667)) / mAndroid[1].w;
+        float t = 4.0f * float(time / us2ns(10667)) / mAndroid[1].w;
         GLint offset = (1 - (t - floorf(t))) * mAndroid[1].w;
         GLint x = xc - offset;
 
