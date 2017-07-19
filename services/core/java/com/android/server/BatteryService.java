@@ -780,35 +780,40 @@ public final class BatteryService extends SystemService {
         @Override
         public boolean isPowered(int plugTypeSet) {
             synchronized (mLock) {
-                return isPoweredLocked(plugTypeSet);
+                //return isPoweredLocked(plugTypeSet);
+		return true;
             }
         }
 
         @Override
         public int getPlugType() {
             synchronized (mLock) {
-                return mPlugType;
+               // return mPlugType;
+		return BatteryManager.BATTERY_PLUGGED_AC;
             }
         }
 
         @Override
         public int getBatteryLevel() {
             synchronized (mLock) {
-                return mBatteryProps.batteryLevel;
+                //return mBatteryProps.batteryLevel;
+		return 100;
             }
         }
 
         @Override
         public boolean getBatteryLevelLow() {
             synchronized (mLock) {
-                return mBatteryLevelLow;
+               // return mBatteryLevelLow;
+		return false;
             }
         }
 
         @Override
         public int getInvalidCharger() {
             synchronized (mLock) {
-                return mInvalidCharger;
+                //return mInvalidCharger;
+		return 0;
             }
         }
     }

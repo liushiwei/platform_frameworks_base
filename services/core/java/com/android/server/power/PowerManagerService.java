@@ -1338,12 +1338,12 @@ public final class PowerManagerService extends SystemService
             // mPlugType = mBatteryManagerInternal.getPlugType();
             // mBatteryLevel = mBatteryManagerInternal.getBatteryLevel();
             // mBatteryLevelLow = mBatteryManagerInternal.getBatteryLevelLow();
-
+/*
             mIsPowered = true;
             mPlugType = BatteryManager.BATTERY_PLUGGED_AC;
             mBatteryLevel = 100;
             mBatteryLevelLow = false;
-
+*/
             if (DEBUG_SPEW) {
                 Slog.d(TAG, "updateIsPoweredLocked: wasPowered=" + wasPowered
                         + ", mIsPowered=" + mIsPowered
@@ -1441,6 +1441,13 @@ public final class PowerManagerService extends SystemService
             // } else {
             //     mStayOn = false;
             // }
+	    if (mStayOnWhilePluggedInSetting != 0
+                     && !isMaximumScreenOffTimeoutFromDeviceAdminEnforcedLocked()) {
+                 mStayOn = mBatteryManagerInternal.isPowered(mStayOnWhilePluggedInSetting);
+             } else {
+                 mStayOn = false;
+             }
+
             mStayOn = true;
 
             if (mStayOn != wasStayOn) {
