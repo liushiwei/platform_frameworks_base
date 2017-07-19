@@ -3831,6 +3831,11 @@ public class ConnectivityService extends IConnectivityManager.Stub
             if (route.hasGateway() == false) continue;
             if (DBG) log("Adding Route [" + route + "] to network " + netId);
             try {
+		if (route.getInterface().equals("lte0")) {  
+			RouteInfo xroute = RouteInfo.makeHostRoute(route.getGateway(), route.getInterface()); // make host route for nexthop  
+			mNetd.addRoute(netId, xroute); //add nexthop(getGateway()) for table ppp0  
+			if (DBG) log("Adding Route [" + xroute + "] to network " + netId); 
+		}
                 mNetd.addRoute(netId, route);
             } catch (Exception e) {
                 if ((route.getGateway() instanceof Inet4Address) || VDBG) {
