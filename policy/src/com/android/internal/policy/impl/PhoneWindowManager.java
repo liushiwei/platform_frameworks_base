@@ -634,7 +634,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     powerLongPress();
                     break;
                 case MSG_THREE_POINTERS_PRESS:
-                    mContext.sendBroadcastAsUser(new Intent("com.george.settings.switch_source"), UserHandle.ALL);
+                    //mContext.sendBroadcastAsUser(new Intent("com.george.settings.switch_source"), UserHandle.ALL);
                     break;
             }
         }
