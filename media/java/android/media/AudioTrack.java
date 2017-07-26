@@ -384,12 +384,12 @@ public class AudioTrack
    /** @hide */
     private   void turnOnGpsSound(){
         if(DEBUG)
-        Log.d(TAG,"++++++++++++++++++++++turnOnGpsSound mCarid="+mCarid);
+        Log.d(TAG,"++++++++++++++++++++++turnOnGpsSound ");
         try    {
                if(getBTCallFlag()==1){
                    return;
                }
-            if(mCarid==CARID.CARID_AUDIQ3){
+            //if(mCarid==CARID.CARID_AUDIQ3){
                 //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio72/value   1" );
                 FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
                 out.write('1');
@@ -398,13 +398,13 @@ public class AudioTrack
                 out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
                 out.write('0');
                 out.close();
-            }
-            if(mCarid==CARID.CARID_AUDIQ5){
+            //}
+        //    if(mCarid==CARID.CARID_AUDIQ5){
                 //Log.d(TAG,"-------------CARID.CARID_AUDIQ5-----------/sys/class/gpio/gpio158/value   1" );
-                FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
-                out.write('1');
-                out.close();
-            }
+        //        FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
+        //        out.write('1');
+        //        out.close();
+        //    }
         }catch(Exception e)    {
             System.out.println(e);
         }
@@ -413,9 +413,9 @@ public class AudioTrack
     /** @hide */
     private   void turnOffGpsSound(){
         if(DEBUG)
-       Log.d(TAG,"------------------------turnOffGpsSound mCarid = " +mCarid);
+       Log.d(TAG,"------------------------turnOffGpsSound " );
         try    {
-            if(mCarid==CARID.CARID_AUDIQ3){
+            //if(mCarid==CARID.CARID_AUDIQ3){
                 //Log.d(TAG,"-------------CARID.CARID_AUDIQ3-----------/sys/class/gpio/gpio72/value   0" );
                 FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio72/value"));
                 out.write('0');
@@ -424,13 +424,13 @@ public class AudioTrack
                 out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
                 out.write('1');
                 out.close();
-            }
-            if(mCarid==CARID.CARID_AUDIQ5){
+           // }
+           // if(mCarid==CARID.CARID_AUDIQ5){
                 //Log.d(TAG,"-------------CARID.CARID_AUDIQ5-----------/sys/class/gpio/gpio158/value   0" );
-                FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
-                out.write('0');
-                out.close();
-            }
+           //     FileOutputStream out = new FileOutputStream(new File("/sys/class/gpio/gpio158/value"));
+           //     out.write('0');
+           //     out.close();
+           // }
         }catch(Exception e)    {
             System.out.println(e);
         }
@@ -492,7 +492,7 @@ public class AudioTrack
         return 0;
     }
 
-    private static CARID mCarid  = CARID.CARID_AUDIQ3;
+    //private static CARID mCarid  = CARID.CARID_AUDIQ3;
 
 
     //--------------------------------------------------------------------------
@@ -635,13 +635,13 @@ public class AudioTrack
                                 }
                                 
                             }
-                            if(source !=null&&source.startsWith("car_id=")){
-                                 Log.d(TAG,"-------------get car_id-----------" );
-                                String car_id = source.substring(source.indexOf("=")+1);
-                                Log.d(TAG,"-------------get car_id-----------"+car_id );
-                                int id = Integer.valueOf(car_id);
-                                mCarid =  CARID.values()[id];
-                            }
+                            //if(source !=null&&source.startsWith("car_id=")){
+                            //     Log.d(TAG,"-------------get car_id-----------" );
+                            //    String car_id = source.substring(source.indexOf("=")+1);
+                            //    Log.d(TAG,"-------------get car_id-----------"+car_id );
+                            //    int id = Integer.valueOf(car_id);
+                            //    mCarid =  CARID.values()[id];
+                            //}
                         }while(source!=null);
                         buf.close();
                     } catch (FileNotFoundException e) {
